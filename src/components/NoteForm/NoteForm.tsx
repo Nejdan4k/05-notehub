@@ -12,7 +12,9 @@ export interface NoteFormProps {
 const Schema = Yup.object({
   title: Yup.string().min(3, 'Min 3').max(50, 'Max 50').required('Required'),
   content: Yup.string().max(500, 'Max 500'),
-  tag: Yup.mixed<NoteTag>().oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping']).required('Required'),
+  tag: Yup.mixed<NoteTag>()
+    .oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'])
+    .required('Required'),
 });
 
 export default function NoteForm({ onCreated }: NoteFormProps) {
@@ -59,7 +61,12 @@ export default function NoteForm({ onCreated }: NoteFormProps) {
           </div>
 
           <div className={css.actions}>
-            <button type="button" className={css.cancelButton} onClick={onCreated} disabled={isSubmitting}>
+            <button
+              type="button"
+              className={css.cancelButton}
+              onClick={onCreated}
+              disabled={isSubmitting}
+            >
               Cancel
             </button>
             <button type="submit" className={css.submitButton} disabled={isSubmitting}>

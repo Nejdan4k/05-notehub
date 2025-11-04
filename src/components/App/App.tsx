@@ -1,10 +1,5 @@
 import { useState } from 'react';
-import {
-  useQuery,
-  keepPreviousData,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { QueryKey } from '@tanstack/react-query';
 
 import { useDebounce } from 'use-debounce';
@@ -44,8 +39,7 @@ export default function App() {
 
   const notesQuery = useQuery<FetchNotesResponse>({
     queryKey: key as unknown as QueryKey,
-    queryFn: () =>
-      fetchNotes({ page, perPage: PER_PAGE, search: debouncedSearch }),
+    queryFn: () => fetchNotes({ page, perPage: PER_PAGE, search: debouncedSearch }),
     placeholderData: keepPreviousData,
   });
 
@@ -62,30 +56,22 @@ export default function App() {
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: key as unknown as QueryKey });
 
-      const previous = qc.getQueryData<FetchNotesResponse>(
-        key as unknown as QueryKey
-      );
+      const previous = qc.getQueryData<FetchNotesResponse>(key as unknown as QueryKey);
 
       // оптимістичне видалення без any
-      qc.setQueryData<FetchNotesResponse>(
-        key as unknown as QueryKey,
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            items: old.items.filter((n) => extractId(n) !== id),
-          };
-        }
-      );
+      qc.setQueryData<FetchNotesResponse>(key as unknown as QueryKey, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: old.items.filter((n) => extractId(n) !== id),
+        };
+      });
 
       return { previous };
     },
     onError: (_err, _id, ctx) => {
       if (ctx?.previous) {
-        qc.setQueryData<FetchNotesResponse>(
-          key as unknown as QueryKey,
-          ctx.previous
-        );
+        qc.setQueryData<FetchNotesResponse>(key as unknown as QueryKey, ctx.previous);
       }
     },
     onSettled: () => {
@@ -105,11 +91,7 @@ export default function App() {
         />
 
         {totalPages > 1 && (
-          <Pagination
-            pageCount={totalPages}
-            currentPage={page}
-            onPageChange={(p) => setPage(p)}
-          />
+          <Pagination pageCount={totalPages} currentPage={page} onPageChange={(p) => setPage(p)} />
         )}
 
         <button className={css.button} onClick={() => setIsOpen(true)}>

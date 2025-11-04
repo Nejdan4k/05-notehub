@@ -43,14 +43,22 @@ export async function fetchNotes(params: FetchNotesParams = {}): Promise<FetchNo
   };
 }
 
-export interface CreateNoteBody { title: string; content: string; tag: NoteTag }
-export interface CreateNoteResponse { item: Note }
+export interface CreateNoteBody {
+  title: string;
+  content: string;
+  tag: NoteTag;
+}
+export interface CreateNoteResponse {
+  item: Note;
+}
 export async function createNote(body: CreateNoteBody): Promise<CreateNoteResponse> {
   const { data } = await api.post<CreateNoteResponse>('/notes', body);
   return data;
 }
 
-export interface DeleteNoteResponse { item: Note }
+export interface DeleteNoteResponse {
+  item: Note;
+}
 export async function deleteNote(id: string): Promise<DeleteNoteResponse> {
   const { data } = await api.delete<DeleteNoteResponse>(`/notes/${id}`);
   return data;

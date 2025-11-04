@@ -41,11 +41,16 @@ export default function Modal({ children, onClose }: ModalProps) {
   }, [onClose]);
 
   return createPortal(
-    <div className={`${css.backdrop} ${css.open}`} onClick={(e) => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true">
+    <div
+      className={`${css.backdrop} ${css.open}`}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      role="dialog"
+      aria-modal="true"
+    >
       <div ref={modalRef} className={css.modal}>
         {children}
       </div>
     </div>,
-    root
+    root,
   );
 }

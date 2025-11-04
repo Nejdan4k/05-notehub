@@ -25,17 +25,17 @@
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.15);
   position: relative;
 
- 
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .open {
   opacity: 1;
   transform: translateY(0);
 }
-
 
 .backdrop.open {
   opacity: 1;
