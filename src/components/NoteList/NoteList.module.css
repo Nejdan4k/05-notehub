@@ -33,9 +33,9 @@
   color: #495057;
   margin-bottom: 12px;
 
+  /* багаторядкове обрізання (кросбраузерно через webkit) */
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* старий спосіб */
-  line-clamp: 3; /* новий стандарт */
+  -webkit-line-clamp: 3;      /* показати до 3 рядків */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
