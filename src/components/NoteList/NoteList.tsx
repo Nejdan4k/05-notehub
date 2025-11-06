@@ -1,52 +1,39 @@
-import css from './NoteList.module.css';
-import type { Note } from '../../types/note';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteNote } from "../../services/noteService";
+import type { Note } from "../../types/note";
+import css from "./NoteList.module.css";
 
-export interface NoteListProps {
-  items: Note[];
-  onDelete?: (id: string) => void;
-  isDeleting?: boolean;
-  deletingId?: string;
+interface NoteListProps {
+  notes: Note[];
 }
 
-// guard без any для _id
-function extractId(n: Note): string | undefined {
-  const m = n as unknown as { id?: string; _id?: string };
-  return m.id ?? m._id;
-}
+export default function NoteList({ notes }: NoteListProps) {
+  const qc = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (id: string) => deleteNote(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notes"] });
+    }
+  });
 
-export default function NoteList({
-  items,
-  onDelete,
-  isDeleting = false,
-  deletingId,
-}: NoteListProps) {
   return (
     <ul className={css.list}>
-      {items.map((n) => {
-        const id = extractId(n);
-        const busy = isDeleting && deletingId === id;
-
-        return (
-          <li className={css.listItem} key={id ?? n.title}>
-            <h2 className={css.title}>{n.title}</h2>
-            <p className={css.content}>{n.content}</p>
-            <div className={css.footer}>
-              <span className={css.tag}>{n.tag}</span>
-              {onDelete && (
-                <button
-                  className={css.button}
-                  onClick={() => id && onDelete(id)}
-                  disabled={busy || !id}
-                  aria-busy={busy}
-                  title={busy ? 'Deleting…' : 'Delete'}
-                >
-                  {busy ? 'Deleting…' : 'Delete'}
-                </button>
-              )}
-            </div>
-          </li>
-        );
-      })}
+      {notes.map((n) => (
+        <li key={n.id} className={css.listItem}>
+          <h2 className={css.title}>{n.title}</h2>
+          <p className={css.content}>{n.content}</p>
+          <div className={css.footer}>
+            <span className={css.tag}>{n.tag}</span>
+            <button
+              className={css.button}
+              onClick={() => mutation.mutate(n.id)}
+              disabled={mutation.isPending}
+            >
+              Delete
+            </button>
+          </div>
+        </li>
+      ))}
     </ul>
   );
 }

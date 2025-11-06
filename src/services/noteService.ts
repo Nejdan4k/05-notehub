@@ -1,65 +1,67 @@
-import axios, { AxiosHeaders, type InternalAxiosRequestConfig } from 'axios';
-import type { Note, NoteTag } from '../types/note';
+import axios, { AxiosError } from "axios";
+import type { Note, NoteTag } from "../types/note";
 
-const api = axios.create({
-  baseURL: 'https://notehub-public.goit.study/api',
-});
+const BASE_URL = "https://notehub-public.goit.study/api";
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = import.meta.env.VITE_NOTEHUB_TOKEN as string | undefined;
-  if (!token) throw new Error('VITE_NOTEHUB_TOKEN is missing');
-
-  const headers = AxiosHeaders.from(config.headers ?? {});
-  headers.set('Authorization', `Bearer ${token}`);
-  config.headers = headers;
-
-  return config;
-});
+const token = import.meta.env.VITE_NOTEHUB_TOKEN;
+if (!token) {
+  console.warn("VITE_NOTEHUB_TOKEN is not set!");
+}
 
 export interface FetchNotesParams {
   page?: number;
   perPage?: number;
   search?: string;
+  tag?: NoteTag | "";
+  sortBy?: "created" | "updated";
 }
+
 export interface FetchNotesResponse {
-  page: number;
-  perPage: number;
+  notes: Note[];
   totalPages: number;
-  items: Note[];
 }
 
-/** GET /notes — бекенд повертає { notes, page, perPage, totalPages } */
-export async function fetchNotes(params: FetchNotesParams = {}): Promise<FetchNotesResponse> {
-  const { page = 1, perPage = 12, search } = params;
-  const q = search && search.trim() ? search.trim() : undefined;
-
-  const { data } = await api.get('/notes', { params: { page, perPage, search: q } });
-
-  return {
-    page: data.page ?? 1,
-    perPage: data.perPage ?? 12,
-    totalPages: data.totalPages ?? 1,
-    items: Array.isArray(data.notes) ? data.notes : [],
-  };
-}
-
-export interface CreateNoteBody {
+export interface CreateNoteDTO {
   title: string;
   content: string;
   tag: NoteTag;
 }
-export interface CreateNoteResponse {
-  item: Note;
+
+export interface DeleteNoteResponse {
+  id: string;
 }
-export async function createNote(body: CreateNoteBody): Promise<CreateNoteResponse> {
-  const { data } = await api.post<CreateNoteResponse>('/notes', body);
+
+const noteApi = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
+
+export async function fetchNotes(params: FetchNotesParams): Promise<FetchNotesResponse> {
+  const { page = 1, perPage = 12, search = "", tag = "", sortBy = "created" } = params;
+  const { data } = await noteApi.get<FetchNotesResponse>("/notes", {
+    params: {
+      page,
+      perPage,
+      search: search || undefined,
+      tag: tag || undefined,
+      sortBy
+    }
+  });
   return data;
 }
 
-export interface DeleteNoteResponse {
-  item: Note;
-}
-export async function deleteNote(id: string): Promise<DeleteNoteResponse> {
-  const { data } = await api.delete<DeleteNoteResponse>(`/notes/${id}`);
+export async function createNote(dto: CreateNoteDTO): Promise<Note> {
+  const { data } = await noteApi.post<Note>("/notes", dto);
   return data;
+}
+
+export async function deleteNote(id: string): Promise<DeleteNoteResponse> {
+  const { data } = await noteApi.delete<DeleteNoteResponse>(`/notes/${id}`);
+  return data;
+}
+
+export function isAxiosError(err: unknown): err is AxiosError {
+  return !!(err as AxiosError)?.isAxiosError;
 }

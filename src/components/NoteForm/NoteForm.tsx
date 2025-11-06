@@ -1,51 +1,54 @@
-import { Formik, Form, Field, ErrorMessage as FormikError } from 'formik';
-import * as Yup from 'yup';
-import css from './NoteForm.module.css';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createNote } from '../../services/noteService';
-import type { NoteTag } from '../../types/note';
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote, type CreateNoteDTO } from "../../services/noteService";
+import type { NoteTag } from "../../types/note";
+import css from "./NoteForm.module.css";
 
-export interface NoteFormProps {
-  onCreated: () => void;
+interface NoteFormProps {
+  onClose: () => void;
 }
 
-const Schema = Yup.object({
-  title: Yup.string().min(3, 'Min 3').max(50, 'Max 50').required('Required'),
-  content: Yup.string().max(500, 'Max 500'),
-  tag: Yup.mixed<NoteTag>()
-    .oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'])
-    .required('Required'),
+const schema = Yup.object({
+  title: Yup.string().min(3).max(50).required("Required"),
+  content: Yup.string().max(500),
+  tag: Yup.mixed<NoteTag>().oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"]).required("Required")
 });
 
-export default function NoteForm({ onCreated }: NoteFormProps) {
-  const qc = useQueryClient();
+const initialValues: CreateNoteDTO = {
+  title: "",
+  content: "",
+  tag: "Todo"
+};
 
+export default function NoteForm({ onClose }: NoteFormProps) {
+  const qc = useQueryClient();
   const mutation = useMutation({
-    mutationFn: createNote,
+    mutationFn: (payload: CreateNoteDTO) => createNote(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['notes'] });
-      onCreated();
-    },
+      qc.invalidateQueries({ queryKey: ["notes"] });
+      onClose();
+    }
   });
 
   return (
     <Formik
-      initialValues={{ title: '', content: '', tag: 'Todo' as NoteTag }}
-      validationSchema={Schema}
+      initialValues={initialValues}
+      validationSchema={schema}
       onSubmit={(values) => mutation.mutate(values)}
     >
-      {({ isSubmitting }) => (
+      {({ isValid, isSubmitting }) => (
         <Form className={css.form}>
           <div className={css.formGroup}>
             <label htmlFor="title">Title</label>
             <Field id="title" name="title" type="text" className={css.input} />
-            <FormikError name="title" component="span" className={css.error} />
+            <ErrorMessage name="title" component="span" className={css.error} />
           </div>
 
           <div className={css.formGroup}>
             <label htmlFor="content">Content</label>
             <Field as="textarea" id="content" name="content" rows={8} className={css.textarea} />
-            <FormikError name="content" component="span" className={css.error} />
+            <ErrorMessage name="content" component="span" className={css.error} />
           </div>
 
           <div className={css.formGroup}>
@@ -57,20 +60,15 @@ export default function NoteForm({ onCreated }: NoteFormProps) {
               <option value="Meeting">Meeting</option>
               <option value="Shopping">Shopping</option>
             </Field>
-            <FormikError name="tag" component="span" className={css.error} />
+            <ErrorMessage name="tag" component="span" className={css.error} />
           </div>
 
           <div className={css.actions}>
-            <button
-              type="button"
-              className={css.cancelButton}
-              onClick={onCreated}
-              disabled={isSubmitting}
-            >
+            <button type="button" className={css.cancelButton} onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className={css.submitButton} disabled={isSubmitting}>
-              {isSubmitting ? 'Creating…' : 'Create note'}
+            <button type="submit" className={css.submitButton} disabled={!isValid || isSubmitting || mutation.isPending}>
+              Create note
             </button>
           </div>
         </Form>

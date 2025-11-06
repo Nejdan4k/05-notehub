@@ -1,8 +1,9 @@
-import css from './SearchBox.module.css';
 
-export interface SearchBoxProps {
+import css from "./SearchBox.module.css";
+
+interface SearchBoxProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (v: string) => void;
 }
 
 export default function SearchBox({ value, onChange }: SearchBoxProps) {
